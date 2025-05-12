@@ -183,13 +183,10 @@ public class NFCPassportModel {
         
         return dg1.elements
     }
-        
+
+    public init() {}
     
-    public init() {
-        
-    }
-    
-    public init( from dump: [String:String] ) {
+    public init(from dump: [String:String] ) {
         var AAChallenge : [UInt8]?
         var AASignature : [UInt8]?
         for (key,value) in dump {
@@ -302,9 +299,9 @@ public class NFCPassportModel {
         self.activeAuthenticationChallenge = challenge
         self.activeAuthenticationSignature = signature
         
-        Logger.passportReader.debug( "Active Authentication")
-        Logger.passportReader.debug( "   challange - \(binToHexRep(challenge))")
-        Logger.passportReader.debug( "   signature - \(binToHexRep(signature))")
+        Logger.passportReader.debug("Active Authentication")
+        Logger.passportReader.debug("   challange - \(binToHexRep(challenge))")
+        Logger.passportReader.debug("   signature - \(binToHexRep(signature))")
 
         // Get AA Public key
         self.activeAuthenticationPassed = false

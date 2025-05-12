@@ -61,6 +61,7 @@ public class PassportReader : NSObject {
     private var caHandler : ChipAuthenticationHandler?
     private var paceHandler : PACEHandler?
     private var mrzKey : String = ""
+    private var nonce : Data?
     private var dataAmountToReadOverride : Int? = nil
     
     private var scanCompletedHandler: ((NFCPassportModel?, NFCPassportReaderError?)->())!
@@ -90,10 +91,19 @@ public class PassportReader : NSObject {
         dataAmountToReadOverride = amount
     }
     
-    public func readPassport( mrzKey : String, tags : [DataGroupId] = [], skipSecureElements : Bool = true, skipCA : Bool = false, skipPACE : Bool = false, useExtendedMode : Bool = false, customDisplayMessage : ((NFCViewDisplayMessage) -> String?)? = nil) async throws -> NFCPassportModel {
-        
+    public func readPassport(
+        mrzKey: String,
+        tags: [DataGroupId] = [],
+        nonce: Data?,
+        skipSecureElements: Bool = true,
+        skipCA: Bool = true,
+        skipPACE: Bool = false,
+        useExtendedMode: Bool = false,
+        customDisplayMessage: ((NFCViewDisplayMessage) -> String?)? = nil
+    ) async throws -> NFCPassportModel {
         self.passport = NFCPassportModel()
         self.mrzKey = mrzKey
+        self.nonce = nonce
         self.skipCA = skipCA
         self.skipPACE = skipPACE
         self.useExtendedMode = useExtendedMode
@@ -291,7 +301,7 @@ extension PassportReader {
         if passport.PACEStatus != .success {
             do {
                 trackingDelegate?.bacStarted()
-                try await doBACAuthentication(tagReader : tagReader)
+                try await doBACAuthentication(tagReader: tagReader)
                 trackingDelegate?.bacSucceeded()
             } catch {
                 trackingDelegate?.bacFailed()
@@ -302,33 +312,43 @@ extension PassportReader {
         // Now to read the datagroups
         try await readDataGroups(tagReader: tagReader)
 
-        try await doActiveAuthenticationIfNeccessary(tagReader : tagReader)
+        try await doActiveAuthenticationIfNecessary(tagReader: tagReader)
 
         self.updateReaderSessionMessage(alertMessage: NFCViewDisplayMessage.successfulRead)
         self.shouldNotReportNextReaderSessionInvalidationErrorUserCanceled = true
         self.readerSession?.invalidate()
 
         // If we have a masterlist url set then use that and verify the passport now
-        self.passport.verifyPassport(masterListURL: self.masterListURL, useCMSVerification: self.passiveAuthenticationUsesOpenSSL)
+
+        // Do we need it?
+        //self.passport.verifyPassport(masterListURL: self.masterListURL, useCMSVerification: self.passiveAuthenticationUsesOpenSSL)
 
         return self.passport
     }
     
     
-    func doActiveAuthenticationIfNeccessary( tagReader : TagReader) async throws {
+    func doActiveAuthenticationIfNecessary(tagReader: TagReader) async throws {
         guard self.passport.activeAuthenticationSupported else {
             return
         }
         self.updateReaderSessionMessage(alertMessage: NFCViewDisplayMessage.activeAuthentication)
 
-        Logger.passportReader.info( "Performing Active Authentication" )
+        Logger.passportReader.info("Performing Active Authentication")
 
-        let challenge = generateRandomUInt8Array(8)
-        Logger.passportReader.debug( "Generated Active Authentication challange - \(binToHexRep(challenge))")
+        let challenge = challenge()
+        Logger.passportReader.debug("Generated Active Authentication challenge - \(binToHexRep(challenge))")
         let response = try await tagReader.doInternalAuthentication(challenge: challenge, useExtendedMode: useExtendedMode)
-        self.passport.verifyActiveAuthentication( challenge:challenge, signature:response.data )
+        self.passport.verifyActiveAuthentication(challenge: challenge, signature: response.data) // Try to remove
     }
-    
+
+    private func challenge() -> [UInt8] {
+        if let nonce {
+            return [UInt8](nonce)
+        } else {
+            return generateRandomUInt8Array(8)
+        }
+    }
+
 
     func doBACAuthentication(tagReader : TagReader) async throws {
         self.currentlyReadingDataGroup = nil
