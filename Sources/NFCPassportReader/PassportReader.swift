@@ -107,7 +107,6 @@ public class PassportReader : NSObject {
         self.skipCA = skipCA
         self.skipPACE = skipPACE
         self.useExtendedMode = useExtendedMode
-        let tags: [DataGroupId] = [.DG1, .DG15, .DG5, .SOD]
         self.dataGroupsToRead.removeAll()
         self.dataGroupsToRead.append(contentsOf: tags)
         self.nfcViewDisplayMessageHandler = customDisplayMessage
@@ -371,8 +370,8 @@ extension PassportReader {
 
         self.updateReaderSessionMessage( alertMessage: NFCViewDisplayMessage.readingDataGroupProgress(.COM, 0) )
         
-        if let com = try await readDataGroup(tagReader:tagReader, dgId:.COM) as? COM {
-            self.passport.addDataGroup( .COM, dataGroup:com )
+        if let com = try await readDataGroup(tagReader: tagReader, dgId: .COM) as? COM {
+            self.passport.addDataGroup(.COM, dataGroup: com )
             self.addDatagroupsToRead(com: com, to: &DGsToRead)
         }
         
@@ -496,6 +495,9 @@ extension PassportReader {
         
         // SOD should not be present in COM, but just in case we check before adding it so its not read twice
         if !DGsToRead.contains(.SOD) { DGsToRead.insert(.SOD, at: 0) }
+
+        // TODO: Fix it
+        DGsToRead.append(.DG34)
     }
 }
 #endif

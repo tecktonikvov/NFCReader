@@ -180,7 +180,7 @@ extension MainView {
         let useExtendedMode = settings.useExtendedMode
 
         let passportUtils = PassportUtils()
-        let mrzKey = passportUtils.getMRZKey( passportNumber: pptNr, dateOfBirth: dob, dateOfExpiry: doe)
+        let mrzKey = passportUtils.getMRZKey(passportNumber: pptNr, dateOfBirth: dob, dateOfExpiry: doe)
 
         // Set the masterListURL on the Passport Reader to allow auto passport verification
         let masterListURL = Bundle.main.url(forResource: "masterList", withExtension: ".pem")!
@@ -207,8 +207,8 @@ extension MainView {
             }
             
             do {
-                let passport = try await passportReader.readPassport( mrzKey: mrzKey, useExtendedMode: useExtendedMode,  customDisplayMessage:customMessageHandler)
-                
+                let passport = try await passportReader.readPassport(mrzKey: mrzKey, nonce: nil, useExtendedMode: useExtendedMode, customDisplayMessage: customMessageHandler)
+
                 if let _ = passport.faceImageInfo {
                     print( "Got face Image details")
                 }
