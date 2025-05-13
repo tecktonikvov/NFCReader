@@ -18,7 +18,7 @@ public class DataGroup34: DataGroup {
     override func parse(_ data: [UInt8]) throws {
         //guard data.count > 8 else { return }
 
-       // let payload = Array(data[8...])
+       //  let payload = Array(data[8...])
         var digits = ""
         var all = ""
 
