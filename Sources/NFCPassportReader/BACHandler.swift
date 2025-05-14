@@ -12,7 +12,6 @@ import OSLog
 #if !os(macOS)
 import CoreNFC
 
-@available(iOS 15, *)
 public class BACHandler {
     let KENC : [UInt8] = [0,0,0,1]
     let KMAC : [UInt8] = [0,0,0,2]

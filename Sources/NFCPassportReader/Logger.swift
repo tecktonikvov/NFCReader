@@ -1,19 +1,37 @@
 //
-//  Logging.swift
-//  NFCTest
+//  Logger.swift
+//  NFCPassportReader
 //
-//  Created by Andy Qua on 11/06/2019.
-//  Copyright © 2019 Andy Qua. All rights reserved.
+//  Created by Volodymyr Kotsiubenko on 14/5/25.
 //
 
 import Foundation
-import OSLog
 
-
-extension Logger {
-    /// Using your bundle identifier is a great way to ensure a unique identifier.
+final class Logger {
     private static var subsystem = Bundle.main.bundleIdentifier!
-    
+    private let category: String
+
+    private init(subsystem: String, category: String) {
+        self.category = category
+    }
+
+    func error(_ message: String) {
+        print("[Error] \(Logger.subsystem), \(category): \(message)")
+    }
+
+    func info(_ message: String) {
+        print("[Info] \(Logger.subsystem), \(category): \(message)")
+    }
+
+    func warning(_ message: String) {
+        print("[Warning] \(Logger.subsystem), \(category): \(message)")
+    }
+
+    func debug(_ message: String) {
+        print("[Debug] \(Logger.subsystem), \(category): \(message)")
+    }
+
+
     /// Tag Reader logs
     static let passportReader = Logger(subsystem: subsystem, category: "passportReader")
 
@@ -29,4 +47,3 @@ extension Logger {
     static let chipAuth = Logger(subsystem: subsystem, category: "chipAuthentication")
     static let pace = Logger(subsystem: subsystem, category: "PACE")
 }
-
