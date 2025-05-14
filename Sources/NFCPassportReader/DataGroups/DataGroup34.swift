@@ -7,12 +7,14 @@
 
 
 public class DataGroup34: DataGroup {
-    public var rnokpp: String {
-        rnokppData.map { String(UnicodeScalar($0)) }.joined()
+    public var rnokpp: String? {
+        guard !rnokppData.isEmpty else { return nil }
+        return rnokppData.map { String(UnicodeScalar($0)) }.joined()
     }
 
     public private(set) var rnokppData = [UInt8]()
     public private(set) var clearData = [UInt8]()
+    public private(set) var signature = [UInt8]()
 
     public override var datagroupType: DataGroupId { .DG34 }
 
