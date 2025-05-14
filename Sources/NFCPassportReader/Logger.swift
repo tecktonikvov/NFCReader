@@ -16,21 +16,20 @@ final class Logger {
     }
 
     func error(_ message: String) {
-        print("[Error] \(Logger.subsystem), \(category): \(message)")
+        print(message)
     }
 
     func info(_ message: String) {
-        print("[Info] \(Logger.subsystem), \(category): \(message)")
+        print(message)
     }
 
     func warning(_ message: String) {
-        print("[Warning] \(Logger.subsystem), \(category): \(message)")
+        print(message)
     }
 
     func debug(_ message: String) {
-        print("[Debug] \(Logger.subsystem), \(category): \(message)")
+        print(message)
     }
-
 
     /// Tag Reader logs
     static let passportReader = Logger(subsystem: subsystem, category: "passportReader")
