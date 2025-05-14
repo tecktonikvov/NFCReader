@@ -7,33 +7,31 @@
 
 
 public class DataGroup34: DataGroup {
-    public private(set) var rnokpp: String?
+    public var rnokpp: String {
+        rnokppData.map { String(UnicodeScalar($0)) }.joined()
+    }
+
+    public private(set) var rnokppData = [UInt8]()
+    public private(set) var clearData = [UInt8]()
 
     public override var datagroupType: DataGroupId { .DG34 }
 
     required init(_ data: [UInt8]) throws {
-        try super.init(data)
+        try super.init(data, headerBytesCount: 2)
     }
 
     override func parse(_ data: [UInt8]) throws {
-        //guard data.count > 8 else { return }
+        let rnokppData = Array(data[8...18])
 
-       //  let payload = Array(data[8...])
-        var digits = ""
-        var all = ""
-
-        //for byte in payload {
-            for byte in data {
-            all.append(String(UnicodeScalar(byte)))
-
-            //if byte == 0x40 { break } // Stop when @ detected
-            if byte >= 0x30 && byte <= 0x39 { // Only digits 0-9
-                digits.append(String(UnicodeScalar(byte)))
-            }
+        guard data.count > 84, allBytesAreDigits(rnokppData) else {
+            throw NFCPassportReaderError.UnsupportedDataGroup
         }
 
-        if digits.count == 10 {
-            rnokpp = digits
-        }
+        self.clearData = Array(data[4...85])
+        self.rnokppData = rnokppData
+    }
+
+    private func allBytesAreDigits(_ bytes: [UInt8]) -> Bool {
+        return bytes.allSatisfy { $0 >= 0x30 && $0 <= 0x39 }
     }
 }

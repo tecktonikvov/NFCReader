@@ -172,20 +172,36 @@ public class TagReader {
         var resp = try await selectFile(tag: tag )
         bench.stop()
 
+        let readHeaderCmd: NFCISO7816APDU?
         // Read first 4 bytes of header to see how big the data structure is
-        guard let readHeaderCmd = NFCISO7816APDU(data:Data([0x00, 0xB0, 0x00, 0x00, 0x00, 0x00,0x04])) else {
+
+        if tag == [0x01, 0x22] {
+            readHeaderCmd = NFCISO7816APDU(data:Data([0x00, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x05]))
+        } else {
+            readHeaderCmd = NFCISO7816APDU(data:Data([0x00, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x04]))
+        }
+
+        guard let readHeaderCmd else {
             throw NFCPassportReaderError.UnexpectedError
         }
+
         let bench1 = StepBenchTimer(stepName: " ==== send( cmd: readHeaderCmd ) \(tag)", isInDebug: true)
-        resp = try await self.send( cmd: readHeaderCmd )
+        resp = try await self.send(cmd: readHeaderCmd)
         bench1.stop()
 
         // Header looks like:  <tag><length of data><nextTag> e.g.60145F01 -
         // the total length is the 2nd value plus the two header 2 bytes
         // We've read 4 bytes so we now need to read the remaining bytes from offset 4
-        let (len, o) = try! asn1Length([UInt8](resp.data[1..<4]))
-        var remaining = Int(len)
-        var amountRead = o + 1
+        let length: (len: Int, o: Int)
+
+        if tag == [0x01, 0x22] {
+            length = try! asn1Length([UInt8](resp.data[2..<5]))
+        } else {
+            length = try! asn1Length([UInt8](resp.data[1..<4]))
+        }
+        
+        var remaining = Int(length.len)
+        var amountRead = length.o + 1
         
         var data = [UInt8](resp.data[..<amountRead])
         

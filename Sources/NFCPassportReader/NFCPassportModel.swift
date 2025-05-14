@@ -111,7 +111,7 @@ public class NFCPassportModel {
     
     // Parsed datagroup hashes
     public private(set) var dataGroupsAvailable = [DataGroupId]()
-    public private(set) var dataGroupsRead : [DataGroupId:DataGroup] = [:]
+    public private(set) var dataGroupsRead: [DataGroupId: DataGroup] = [:]
     public private(set) var dataGroupHashes = [DataGroupId: DataGroupHash]()
 
     public internal(set) var cardAccess : CardAccess?
