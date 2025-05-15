@@ -220,13 +220,13 @@ extension PassportReader : NFCTagReaderSessionDelegate {
                 
                 tagReader.progress = { [unowned self] (progress) in
                     if let dgId = self.currentlyReadingDataGroup {
-                        self.updateReaderSessionMessage( alertMessage: NFCViewDisplayMessage.readingDataGroupProgress(dgId, progress) )
+                        self.updateReaderSessionMessage( alertMessage: NFCViewDisplayMessage.readingDataGroupProgress(dgId, progress))
                     } else {
-                        self.updateReaderSessionMessage( alertMessage: NFCViewDisplayMessage.authenticatingWithPassport(progress) )
+                        self.updateReaderSessionMessage( alertMessage: NFCViewDisplayMessage.authenticatingWithPassport(progress))
                     }
                 }
                 
-                let passportModel = try await self.startReading( tagReader : tagReader)
+                let passportModel = try await self.startReading(tagReader: tagReader)
                 nfcContinuation?.resume(returning: passportModel)
                 nfcContinuation = nil
 
@@ -237,8 +237,6 @@ extension PassportReader : NFCTagReaderSessionDelegate {
             } catch {
                 Logger.passportReader.debug( "tagReaderSession:failed to connect to tag - \(error.localizedDescription)" )
 
-                // .readerTransceiveErrorTagResponseError is thrown when a "connection lost" scenario is forced by moving the phone away from the NFC chip
-                // .readerTransceiveErrorTagConnectionLost is never thrown for this scenario, but added for the sake of completeness
                 if let nfcError = error as? NFCReaderError,
                    nfcError.errorCode == NFCReaderError.readerTransceiveErrorTagResponseError.rawValue ||
                     nfcError.errorCode == NFCReaderError.readerTransceiveErrorTagConnectionLost.rawValue {
@@ -258,7 +256,6 @@ extension PassportReader : NFCTagReaderSessionDelegate {
 }
 
 extension PassportReader {
-    
     func startReading(tagReader : TagReader) async throws -> NFCPassportModel {
         trackingDelegate?.nfcTagDetected()
 
@@ -313,9 +310,7 @@ extension PassportReader {
         self.readerSession?.invalidate()
 
         // If we have a masterlist url set then use that and verify the passport now
-
-        // Do we need it?
-        //self.passport.verifyPassport(masterListURL: self.masterListURL, useCMSVerification: self.passiveAuthenticationUsesOpenSSL)
+        self.passport.verifyPassport(masterListURL: self.masterListURL, useCMSVerification: self.passiveAuthenticationUsesOpenSSL)
 
         return self.passport
     }
@@ -358,12 +353,11 @@ extension PassportReader {
         self.passport.BACStatus = .success
     }
 
-    func readDataGroups( tagReader: TagReader ) async throws {
-        
+    func readDataGroups(tagReader: TagReader) async throws {
         // Read COM
         var DGsToRead = [DataGroupId]()
 
-        self.updateReaderSessionMessage( alertMessage: NFCViewDisplayMessage.readingDataGroupProgress(.COM, 0) )
+        self.updateReaderSessionMessage(alertMessage: NFCViewDisplayMessage.readingDataGroupProgress(.COM, 0))
         
         if let com = try await readDataGroup(tagReader: tagReader, dgId: .COM) as? COM {
             self.passport.addDataGroup(.COM, dataGroup: com )
@@ -491,8 +485,9 @@ extension PassportReader {
         // SOD should not be present in COM, but just in case we check before adding it so its not read twice
         if !DGsToRead.contains(.SOD) { DGsToRead.insert(.SOD, at: 0) }
 
-        // TODO: Fix it
-        DGsToRead.append(.DG34)
+        if dataGroupsToRead.contains(.DG34) {
+            DGsToRead.append(.DG34)
+        }
     }
 }
 #endif

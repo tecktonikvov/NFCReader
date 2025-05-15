@@ -8,9 +8,9 @@ import Foundation
 
 @available(iOS 13, macOS 10.15, *)
 public class COM : DataGroup {
-    public private(set) var version : String = "Unknown"
-    public private(set) var unicodeVersion : String = "Unknown"
-    public private(set) var dataGroupsPresent : [String] = []
+    public private(set) var version: String = "Unknown"
+    public private(set) var unicodeVersion: String = "Unknown"
+    public private(set) var dataGroupsPresent: [String] = []
 
     public override var datagroupType: DataGroupId { .COM }
 
@@ -55,6 +55,6 @@ public class COM : DataGroup {
                 dataGroupsPresent.append( DataGroupParser.dataGroupNames[index] )
             }
         }
-        Logger.passportReader.debug( "DG Found - \(self.dataGroupsPresent)" )
+        Logger.passportReader.debug("DG Found - \(self.dataGroupsPresent)")
     }
 }
