@@ -29,17 +29,6 @@ public class DataGroup {
         try parse(data)
     }
 
-    init(_ data : [UInt8], headerBytesCount: Int = 1) throws {
-        self.data = data
-
-        // Skip the first N bytes which is the header byte
-        pos = headerBytesCount
-        let _ = try getNextLength()
-        self.body = [UInt8](data[pos...])
-
-        try parse(data)
-    }
-
     func parse( _ data:[UInt8] ) throws {
     }
     
