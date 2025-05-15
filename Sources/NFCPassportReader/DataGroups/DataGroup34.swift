@@ -14,6 +14,7 @@ public class DataGroup34: DataGroup {
     }
 
     public private(set) var signature: Data!
+    public private(set) var requiredData: Data!
     public private(set) var rnokppData: Data!
 
     public override var datagroupType: DataGroupId { .DG34 }
@@ -32,26 +33,48 @@ public class DataGroup34: DataGroup {
         }
 
         // next byte is the data length, we should read it and move position
-        let (len, lenOffset) = try asn1Length([UInt8](data[pos...pos]))
+        var (len, lenOffset) = try asn1Length([UInt8](data[pos...pos]))
         pos += lenOffset
+        self.requiredData = Data(data[(pos-lenOffset-1) ..< pos+len])
 
         // reading all data and moving position
-        let value = [UInt8](data[pos ..< pos+len])
+        let dataBlock = [UInt8](data[pos ..< pos+len])
         pos += len
 
         // checking if first byte in data is rnokpp tag
         var internalPos = 0
-        guard value.count > 0, value[internalPos] == 0x81 else {
+        guard dataBlock.count > 0, dataBlock[internalPos] == 0x81 else {
             return
         }
         internalPos += 1
 
         // next byte is the data length, we should read it and move position
-        let (rnokppLen, rnokppLenOffset) = try asn1Length([UInt8](value[internalPos...internalPos]))
-        internalPos += rnokppLenOffset
+        (len, lenOffset) = try asn1Length([UInt8](dataBlock[internalPos...internalPos]))
+        internalPos += lenOffset
 
         // reading rnokpp
-        rnokppData = Data(value[internalPos ..< internalPos+rnokppLen])
-        signature = Data(data[pos...])
+        rnokppData = Data(dataBlock[internalPos ..< internalPos+len])
+
+        let signatureData = Data(data[pos...])
+        var signaturePos = 0
+        guard signatureData.count > 0, signatureData[signaturePos] == 0x30 else {
+            return
+        }
+        signaturePos += 1
+        (len, lenOffset) = try asn1Length([UInt8](signatureData[signaturePos...signaturePos]))
+
+        // skiping data that we don't need
+        signaturePos += lenOffset + len
+
+        // found the signature
+        guard signatureData[signaturePos] == 0x03 else {
+            return
+        }
+        signaturePos += 1
+
+        // setting data for server
+        (len, lenOffset) = try asn1Length([UInt8](signatureData[signaturePos...signaturePos]))
+        signaturePos += lenOffset
+        signature = signatureData[signaturePos+1 ..< signaturePos+len]
     }
 }
